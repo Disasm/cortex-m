@@ -62,15 +62,18 @@ pub fn free<F, R>(f: F) -> R
 where
     F: FnOnce(&CriticalSection) -> R,
 {
+    #[cfg(cortex_m)]
     let primask = crate::register::primask::read();
 
     // disable interrupts
+    #[cfg(cortex_m)]
     disable();
 
     let r = f(unsafe { &CriticalSection::new() });
 
     // If the interrupts were active before our `disable` call, then re-enable
     // them. Otherwise, keep them disabled
+    #[cfg(cortex_m)]
     if primask.is_active() {
         unsafe { enable() }
     }
